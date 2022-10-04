@@ -6,20 +6,15 @@ import vueJsx from "@vitejs/plugin-vue-jsx";
 import fs from "fs";
 import path from "path";
 import os from "os";
+import mix from 'vite-plugin-mix'
 
 
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [vue(), vueJsx()],
+  plugins: [vue(), vueJsx(),mix({handler: './api.ts'})],
   server: {
     port: 44355,
-
-    headers: {
-      "Cache-Control": "private, no-cache, no-store, must-revalidate",
-      "Expires": "-1",
-      "Pragma": "no-cache"
-    },
     https: {
       key: fs.readFileSync(
         path.resolve(`${os.homedir}/.office-addin-dev-certs/localhost.key`)
@@ -31,10 +26,5 @@ export default defineConfig({
         path.resolve(`${os.homedir}/.office-addin-dev-certs/ca.crt`)
       ),
     }
-  },
-  resolve: {
-    alias: {
-      "@": fileURLToPath(new URL("./src", import.meta.url)),
-    },
-  },
+  }
 });

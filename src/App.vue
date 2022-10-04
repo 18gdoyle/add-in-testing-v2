@@ -2,56 +2,52 @@
 </script>
 <template>
     <div>
-        <input type="text" @paste="linkPasted" />
+        <div class="authScreen" v-if="!accessTokenExists">
+            <button @click="authorize" type="button">Click to authorize</button>
+        </div>
+        <div class="formSelection" v-if="accessTokenExists">
+            <div>You are signed in</div>
+            <div>Here are your forms</div>
+            <div v-for="form in formsArray">
+                -   {{form.name}}
+            </div>
+        </div>
     </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 
-const request = require('request');
-
 export default defineComponent({
     data: function() {
         return {
+            accessTokenExists: false,
+            formsArray: [] as any
         }
     },
     props: {
     },
     async mounted() {
+        var requestOptions = {
+            method: 'GET',
+        };
+
+        let response = await fetch("https://localhost:44355/api/getformstackforms", requestOptions)
+        .then(async response => {return response.json()})
+        .catch(async err => {return err});
+        
+        if (response.error) {
+            this.accessTokenExists = false;
+            return;
+        }
+
+        this.accessTokenExists = true;
+
+        this.formsArray = response.forms;
     },
     methods: {
-        async linkPasted(pastedEvent: ClipboardEvent) {
-            let pastedInput = pastedEvent.clipboardData?.getData('text/plain');
-
-            const options = {
-                url: 'https://api.github.com/repos/request/request',
-                headers: {
-                    'User-Agent': 'request'
-                }
-            };
-
-            request(options, (error: any, response: any, body: any) => {
-                if (!error && response.statusCode == 200) {
-                    const info = JSON.parse(body);
-                    console.log(info.stargazers_count + " Stars");
-                    console.log(info.forks_count + " Forks");
-                }
-            });
-            /*
-            const options = {
-                method: 'GET',
-                headers: {
-                    accept: 'application/json',
-                    authorization: 'Bearer 7178eb3eb94663c61d561cf532ddf8b5'
-                }
-            };
-
-            fetch('https://na-qjcwa.formstack.com/api/v1/forms?api_key=7178eb3eb94663c61d561cf532ddf8b5', options)
-            .then(response => response.json())
-            .then(response => console.log(response))
-            .catch(err => console.error(err));
-            */
+        authorize() {
+            location.href="https://www.formstack.com/api/v2/oauth2/authorize?client_id=31415&redirect_uri=https%3A%2F%2Flocalhost%3A44355%2Fapi%252Fformstackauth&response_type=code"
         },
     }
 })
