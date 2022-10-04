@@ -1,5 +1,6 @@
 To Run:
 npm install
-office-addin-dev-certs uninstall (just in case)
+npm install office-addin-dev-certs -g (run with admin)
+office-addin-dev-certs uninstall
 office-addin-dev-certs install
 npm run dev
