@@ -5,8 +5,7 @@ import { promises as fs } from 'fs';
 
 export const handler: Handler = async (req, res, next) => {
   if (req.path === '/api/getformstackforms') {
-    let accessToken = await fs.readFile('./fakeDataBase.txt', {encoding: 'utf-8'});
-
+    let accessToken = req.headers.authorization;
     const options = {
       method: 'GET',
       headers: {
@@ -20,28 +19,38 @@ export const handler: Handler = async (req, res, next) => {
       .catch(async err => {return JSON.stringify(await err.json())});
 
     res.end(response);
-  } else if (req.path === '/api/formstackauth') {
-    let formData = new FormData();
-    formData.append('grant_type', 'authorization_code');
-    formData.append('client_id', '31415');
-    formData.append('client_secret', '2e5fecce28');
-    formData.append('code', req.query.code);
-    formData.append('redirect_uri', 'https://localhost:44355/api/formstackauth/success');
-
+  } else if (req.path === '/api/getformstackformsubmissions') {
+    let accessToken = req.headers.authorization;
+    let id = req.headers.formid;
     const options = {
-      method: 'POST',
-      headers: {accept: 'application/json'},
-      body: formData
+      method: 'GET',
+      headers: {
+        accept: 'application/json',
+        authorization: 'Bearer ' + accessToken
+      }
     };
-    
-    let response = await fetch('https://www.formstack.com/api/v2/oauth2/token', options)
+
+    let response = await fetch('https://www.formstack.com/api/v2/form/' + id + '/submission.json', options)
       .then(async response => {return JSON.stringify(await response.json())})
       .catch(async err => {return JSON.stringify(await err.json())});
-    
-    let accessToken = JSON.parse(response).access_token;
-    if (accessToken !== undefined && accessToken !== null) {
-      fs.writeFile('./fakeDataBase.txt', accessToken);
-    }
+
+    res.end(response);
+  } else if (req.path === '/api/getformstacksubmissionresponse') {
+    let accessToken = req.headers.authorization;
+    let id = req.headers.submissionid;
+    const options = {
+      method: 'GET',
+      headers: {
+        accept: 'application/json',
+        authorization: 'Bearer ' + accessToken
+      }
+    };
+
+    let response = await fetch('https://www.formstack.com/api/v2/submission/' + id + '.json', options)
+      .then(async response => {return JSON.stringify(await response.json())})
+      .catch(async err => {return JSON.stringify(await err.json())});
+
+    res.end(response);
   }
   next() // this just returns the index.html by default
 }
