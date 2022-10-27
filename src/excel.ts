@@ -24,3 +24,14 @@ export async function getCustomProperties(propertyKeys: string[]) {
         return propertiesToReturn;
     });
 }
+
+export async function writeToSpreadSheet() {
+    await Excel.run(async (context) => {
+        let sheet = context.workbook.worksheets.getItem("Sheet1");
+    
+        let range = sheet.getRange("C3");
+        range.values = [[ 5 ]];
+    
+        await context.sync();
+    });
+}
